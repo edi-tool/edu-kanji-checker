@@ -22,9 +22,9 @@ https://edi-tool.github.io/edu-kanji-checker/
 * [学年別漢字配当表に基づく漢字データベース](https://denki.nara-edu.ac.jp/~yabu/edu/kanji/kanji3.html) - 藪 哲郎（奈良教育大学）
   * 漢字情報のクロスチェックおよび補足データとして参照
 
-### デザイン・構成
+### デザイン
 * [kzhrknt/awesome-design-md-jp](https://github.com/kzhrknt/awesome-design-md-jp)
-  * 本ドキュメント（README）のデザインおよび構成の参考
+  * 本ツール（index）のデザインの参考
 
 ---
 © 2026 ISHIKAWA, Natsuki
