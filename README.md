@@ -27,4 +27,4 @@ https://edi-tool.github.io/edu-kanji-checker/
   * 本ドキュメント（README）のデザインおよび構成の参考
 
 ---
-© 2024 ISHIKAWA, Natsuki
+© 2026 ISHIKAWA, Natsuki
