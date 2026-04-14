@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教育漢字チェッカー (PDF/Word対応)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+    <style>
+        /* Typography & Visual Theme */
+        body {
+            font-family: noto-sans, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, arial, sans-serif;
+            background-color: #f8f6f2;
+            color: #0f0f0f;
+            line-height: 1.5;
+            letter-spacing: -0.4px;
+            font-feature-settings: "liga";
+            word-break: break-all;
+            overflow-wrap: break-word;
+            line-break: strict;
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px 16px;
+            box-sizing: border-box;
+        }
+
+        /* Cards Component */
+        .container {
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 32px 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        /* Headings */
+        h2 { 
+            margin-top: 0; 
+            margin-bottom: 4px;
+            font-size: 22px;
+            font-weight: 600;
+            color: #0f0f0f; 
+        }
+        .subtitle {
+            font-size: 13px;
+            color: #757575;
+            display: block;
+            margin-bottom: 24px;
+        }
+
+        .instruction {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f0f0f;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+        
+        /* File Input Styling */
+        input[type="file"] {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background-color: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s, background-color 0.2s;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        input[type="file"]:hover {
+            border-color: #118e9e;
+            background-color: #f0fbpc;
+        }
+
+        /* Error Message */
+        .error-msg {
+            color: #e53935;
+            font-size: 13px;
+            min-height: 18px;
+            margin-bottom: 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        /* Result Area */
+        #resultArea {
+            margin-top: 24px;
+            text-align: left;
+        }
+        .placeholder-text {
+            color: #9e9e9e;
+            text-align: center;
+            font-size: 14px;
+            padding: 40px 0;
+        }
+
+        /* Grade Sections */
+        .grade-section {
+            margin-bottom: 32px;
+        }
+        .grade-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .grade-title .count {
+            font-size: 14px;
+            color: #757575;
+            font-weight: normal;
+        }
+
+        /* Kanji Result Items */
+        .kanji-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .kanji-group {
+            padding: 16px;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            background-color: #fcfcfc;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .kanji-header {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed #e0e0e0;
+            padding-bottom: 8px;
+        }
+        .kanji-char {
+            font-size: 28px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        /* Grade Colors */
+        .grade-1 .kanji-char, .grade-1 .grade-title { color: #e53935; border-color: #e53935; }
+        .grade-2 .kanji-char, .grade-2 .grade-title { color: #1e88e5; border-color: #1e88e5; }
+        .grade-3 .kanji-char, .grade-3 .grade-title { color: #43a047; border-color: #43a047; }
+        .grade-4 .kanji-char, .grade-4 .grade-title { color: #fb8c00; border-color: #fb8c00; }
+        .grade-5 .kanji-char, .grade-5 .grade-title { color: #8e24aa; border-color: #8e24aa; }
+        .grade-6 .kanji-char, .grade-6 .grade-title { color: #00acc1; border-color: #00acc1; }
+        .grade-other .kanji-char, .grade-other .grade-title { color: #546e7a; border-color: #546e7a; }
+
+        .context-list {
+            margin: 0;
+            padding-left: 0;
+            list-style-type: none;
+        }
+        .context-item {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+            line-height: 1.5;
+            background: #fff;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+        .highlight {
+            font-weight: bold;
+            padding: 0 2px;
+            border-radius: 2px;
+            color: #000;
+            background-color: #fff59d; /* Highlight color */
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 32px;
+            font-size: 12px;
+            color: #757575;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>教育漢字チェッカー</h2>
+        <span class="subtitle">PDFまたはWord(.docx)からテキストを抽出し、漢字の学習学年を判定します</span>
+        
+        <div class="instruction">ファイルを選択してください (PDF / Word)</div>
+        <input type="file" id="fileInput" accept=".pdf, application/pdf, .docx, application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+        <div id="errorMsg" class="error-msg"></div>
+        
+        <div id="resultArea">
+            <p class="placeholder-text">ファイルを読み込むと、検出された漢字が学年別に分類・表示されます。</p>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 ISHIKAWA, Natsuki | MIT License<br>
+        (漢字データ出典：小学校学習指導要領)
+    </footer>
+
+    <script>
+        // PDF.js workerの設定
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // 教育漢字データ (kanji_js.html 及び 教育漢字.csv より)
+        const kanjiData = {
+            1: "一右雨円王音下火花貝学気九休玉金空月犬見五口校左三山子四糸字耳七車手十出女小上森人水正生青夕石赤千川先早草足村大男竹中虫町天田土二日入年白八百文木本名目立力林六",
+            2: "引羽雲園遠何科夏家歌画回会海絵外角楽活間丸岩顔汽記帰弓牛魚京強教近兄形計元言原戸古午後語工公広交光考行高黄合谷国黒今才細作算止市矢姉思紙寺自時室社弱首秋週春書少場色食心新親図数西声星晴切雪船線前組走多太体台地池知茶昼長鳥朝直通弟店点電刀冬当東答頭同道読内南肉馬売買麦半番父風分聞米歩母方北毎妹万明鳴毛門夜野友用曜来里理話",
+            3: "悪安暗医委意育員院飲運泳駅央横屋温化荷界開階寒感漢館岸起期客究急級宮球去橋業曲局銀区苦具君係軽血決研県庫湖向幸港号根祭皿仕死使始指歯詩次事持式実写者主守取酒受州拾終習集住重宿所暑助昭消商章勝乗植申身神真深進世整昔全相送想息速族他打対待代第題炭短談着注柱丁帳調追定庭笛鉄転都度投豆島湯登等動童農波配倍箱畑発反坂板皮悲美鼻筆氷表秒病品負部服福物平返勉放味命面問役薬由油有遊予羊洋葉陽様落流旅両緑礼列練路和",
+            4: "愛案以衣位茨印英栄媛塩岡億加果貨課芽賀改械害街各覚潟完官管関観願岐希季旗器機議求泣給挙漁共協鏡競極熊訓軍郡群径景芸欠結建健験固功好香候康佐差菜最埼材崎昨札刷察参産散残氏司試児治滋辞鹿失借種周祝順初松笑唱焼照城縄臣信井成省清静席積折節説浅戦選然争倉巣束側続卒孫帯隊達単置仲沖兆低底的典伝徒努灯働特徳栃奈梨熱念敗梅博阪飯飛必票標不夫付府阜富副兵別辺変便包法望牧末満未民無約勇要養浴利陸良料量輪類令冷例連老労録",
+            5: "圧囲移因永営衛易益液演応往桜可仮価河過快解格確額刊幹慣眼紀基寄規喜技義逆久旧救居許境均禁句型経潔件険検限現減故個護効厚耕航鉱構興講告混査再災妻採際在財罪殺雑酸賛士支史志枝師資飼示似識質舎謝授修述術準序招証象賞条状常情織職制性政勢精製税責績接設絶祖素総造像増則測属率損貸態団断築貯張停提程適統堂銅導得毒独任燃能破犯判版比肥非費備評貧布婦武復複仏粉編弁保墓報豊防貿暴脈務夢迷綿輸余容略留領歴",
+            6: "胃異遺域宇映延沿恩我灰拡革閣割株干巻看簡危机揮貴疑吸供胸郷勤筋系敬警劇激穴券絹権憲源厳己呼誤后孝皇紅降鋼刻穀骨困砂座済裁策冊蚕至私姿視詞誌磁射捨尺若樹収宗就衆従縦縮熟純処署諸除承将傷障蒸針仁垂推寸盛聖誠舌宣専泉洗染銭善奏窓創装層操蔵臓存尊退宅担探誕段暖値宙忠著庁頂腸潮賃痛敵展討党糖届難乳認納脳派拝背肺俳班晩否批秘俵腹奮並陛閉片補暮宝訪亡忘棒枚幕密盟模訳郵優預幼欲翌乱卵覧裏律臨朗論"
+        };
+
+        function getKanjiGrade(char) {
+            for (let i = 1; i <= 6; i++) {
+                if (kanjiData[i].includes(char)) return i;
+            }
+            return 'other';
+        }
+
+        document.getElementById('fileInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            const errorMsg = document.getElementById("errorMsg");
+            const resultArea = document.getElementById("resultArea");
+
+            errorMsg.textContent = "";
+            if (!file) return;
+
+            const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+            const isWord = file.name.toLowerCase().endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+            if (!isPDF && !isWord) {
+                errorMsg.textContent = "※PDFファイルまたはWordファイル(.docx)を選択してください。";
+                return;
+            }
+
+            try {
+                resultArea.innerHTML = '<p class="placeholder-text">テキストを抽出・解析中...</p>';
+                const arrayBuffer = await file.arrayBuffer();
+                let fullText = "";
+
+                if (isPDF) {
+                    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        fullText += textContent.items.map(item => item.str).join('');
+                    }
+                } else if (isWord) {
+                    const result = await mammoth.extractRawText({arrayBuffer: arrayBuffer});
+                    fullText = result.value;
+                }
+
+                analyzeKanji(fullText);
+
+            } catch (err) {
+                console.error(err);
+                errorMsg.textContent = "ファイルの解析に失敗しました。ファイルが破損しているか、パスワード保護されている可能性があります。";
+                resultArea.innerHTML = '<p class="placeholder-text">読み込みエラーが発生しました。</p>';
+            }
+        });
+
+        function analyzeKanji(text) {
+            text = text.normalize('NFKC'); 
+            const kanjiRegex = /\p{Script=Han}/gu;
+            
+            // 学年ごとのデータを格納するオブジェクト
+            // 構造: { 1: { '一': Set(文脈), '右': Set(文脈) }, 2: {...}, ..., other: {...} }
+            const gradeResults = {
+                1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 'other': {}
+            };
+            
+            const contextPadding = 12; // 前後何文字取得するか
+            let match;
+            let totalKanjiFound = 0;
+
+            while ((match = kanjiRegex.exec(text)) !== null) {
+                const char = match[0];
+                const index = match.index;
+                const grade = getKanjiGrade(char);
+
+                const start = Math.max(0, index - contextPadding);
+                const end = Math.min(text.length, index + contextPadding + 1);
+                // 改行文字などはスペースに置換して見やすくする
+                const context = text.substring(start, end).replace(/\s+/g, ' ');
+
+                if (!gradeResults[grade][char]) {
+                    gradeResults[grade][char] = new Set();
+                    totalKanjiFound++;
+                }
+                // 同一漢字でも5つ以上の文脈は省略（UIの圧迫を防ぐため）
+                if (gradeResults[grade][char].size < 5) {
+                    gradeResults[grade][char].add(context);
+                }
+            }
+
+            if (totalKanjiFound === 0) {
+                document.getElementById("resultArea").innerHTML = '<p class="placeholder-text" style="color:#2e7d32; font-weight:600;">漢字が見つかりませんでした。</p>';
+                return;
+            }
+
+            renderResults(gradeResults);
+        }
+
+        function renderResults(gradeResults) {
+            const resultArea = document.getElementById("resultArea");
+            resultArea.innerHTML = "";
+
+            const gradeLabels = {
+                1: "小学1年生", 2: "小学2年生", 3: "小学3年生",
+                4: "小学4年生", 5: "小学5年生", 6: "小学6年生",
+                'other': "小学校で習わない漢字"
+            };
+
+            // 学年順に処理
+            ['1', '2', '3', '4', '5', '6', 'other'].forEach(grade => {
+                const kanjisInGrade = Object.keys(gradeResults[grade]).sort();
+                
+                if (kanjisInGrade.length > 0) {
+                    const section = document.createElement("div");
+                    section.className = `grade-section grade-${grade}`;
+
+                    // 学年タイトル
+                    const title = document.createElement("div");
+                    title.className = "grade-title";
+                    title.innerHTML = `<span>${gradeLabels[grade]}</span> <span class="count">${kanjisInGrade.length}種類の漢字</span>`;
+                    section.appendChild(title);
+
+                    // 漢字のグリッドコンテナ
+                    const grid = document.createElement("div");
+                    grid.className = "kanji-grid";
+
+                    kanjisInGrade.forEach(kanji => {
+                        const group = document.createElement("div");
+                        group.className = "kanji-group";
+
+                        const header = document.createElement("div");
+                        header.className = "kanji-header";
+                        header.innerHTML = `<span class="kanji-char">${kanji}</span>`;
+                        group.appendChild(header);
+
+                        const list = document.createElement("ul");
+                        list.className = "context-list";
+                        
+                        gradeResults[grade][kanji].forEach(ctx => {
+                            const li = document.createElement("li");
+                            li.className = "context-item";
+                            // 該当漢字をハイライト
+                            const highlighted = ctx.replace(new RegExp(kanji, 'g'), `<span class="highlight">${kanji}</span>`);
+                            li.innerHTML = `...${highlighted}...`;
+                            list.appendChild(li);
+                        });
+
+                        group.appendChild(list);
+                        grid.appendChild(group);
+                    });
+
+                    section.appendChild(grid);
+                    resultArea.appendChild(section);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
