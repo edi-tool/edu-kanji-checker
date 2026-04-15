@@ -201,6 +201,47 @@ lang: ja
             color: #757575;
             text-align: center;
         }
+        /* タブ用のスタイル */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .tab-btn {
+            padding: 10px 16px;
+            border: none;
+            background-color: transparent;
+            color: #757575;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px; /* 下線と重ねるため */
+            font-family: inherit;
+        }
+        .tab-btn:hover {
+            color: #0f0f0f;
+            background-color: #f5f5f5;
+            border-radius: 6px 6px 0 0;
+        }
+        .tab-btn.active {
+            color: #118e9e;
+            border-bottom-color: #118e9e;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -332,60 +373,65 @@ lang: ja
             const resultArea = document.getElementById("resultArea");
             resultArea.innerHTML = "";
 
-            const gradeLabels = {
+            // タブの短いラベルと、詳細なラベル
+            const tabLabels = {
+                1: "小1", 2: "小2", 3: "小3",
+                4: "小4", 5: "小5", 6: "小6",
+                'other': "その他"
+            };
+            const fullLabels = {
                 1: "小学1年生", 2: "小学2年生", 3: "小学3年生",
                 4: "小学4年生", 5: "小学5年生", 6: "小学6年生",
                 'other': "小学校で習わない漢字"
             };
 
-            // 学年順に処理
-            ['1', '2', '3', '4', '5', '6', 'other'].forEach(grade => {
+            // 該当する漢字が1つ以上ある学年だけを抽出
+            const gradesWithData = ['1', '2', '3', '4', '5', '6', 'other'].filter(grade => 
+                Object.keys(gradeResults[grade]).length > 0
+            );
+
+            // タブのコンテナ
+            const tabsContainer = document.createElement("div");
+            tabsContainer.className = "tabs";
+            
+            // コンテンツのコンテナ
+            const contentContainer = document.createElement("div");
+
+            let isFirst = true;
+
+            gradesWithData.forEach(grade => {
                 const kanjisInGrade = Object.keys(gradeResults[grade]).sort();
                 
-                if (kanjisInGrade.length > 0) {
-                    const section = document.createElement("div");
-                    section.className = `grade-section grade-${grade}`;
+                // ---------------------------
+                // 1. タブボタンの生成
+                // ---------------------------
+                const tabBtn = document.createElement("button");
+                tabBtn.className = "tab-btn" + (isFirst ? " active" : "");
+                tabBtn.innerHTML = `${tabLabels[grade]} <span style="font-size:12px; font-weight:normal;">(${kanjisInGrade.length})</span>`;
+                
+                // ---------------------------
+                // 2. タブコンテンツの生成
+                // ---------------------------
+                const section = document.createElement("div");
+                section.className = `tab-content grade-section grade-${grade}` + (isFirst ? " active" : "");
 
-                    // 学年タイトル
-                    const title = document.createElement("div");
-                    title.className = "grade-title";
-                    title.innerHTML = `<span>${gradeLabels[grade]}</span> <span class="count">${kanjisInGrade.length}種類の漢字</span>`;
-                    section.appendChild(title);
+                // 学年タイトル
+                const title = document.createElement("div");
+                title.className = "grade-title";
+                title.innerHTML = `<span>${fullLabels[grade]}</span> <span class="count">${kanjisInGrade.length}種類の漢字</span>`;
+                section.appendChild(title);
 
-                    // 漢字のグリッドコンテナ
-                    const grid = document.createElement("div");
-                    grid.className = "kanji-grid";
+                // 漢字グリッド
+                const grid = document.createElement("div");
+                grid.className = "kanji-grid";
 
-                    kanjisInGrade.forEach(kanji => {
-                        const group = document.createElement("div");
-                        group.className = "kanji-group";
+                kanjisInGrade.forEach(kanji => {
+                    const group = document.createElement("div");
+                    group.className = "kanji-group";
 
-                        const header = document.createElement("div");
-                        header.className = "kanji-header";
-                        header.innerHTML = `<span class="kanji-char">${kanji}</span>`;
-                        group.appendChild(header);
+                    const header = document.createElement("div");
+                    header.className = "kanji-header";
+                    header.innerHTML = `<span class="kanji-char">${kanji}</span>`;
+                    group.appendChild(header);
 
-                        const list = document.createElement("ul");
-                        list.className = "context-list";
-                        
-                        gradeResults[grade][kanji].forEach(ctx => {
-                            const li = document.createElement("li");
-                            li.className = "context-item";
-                            // 該当漢字をハイライト
-                            const highlighted = ctx.replace(new RegExp(kanji, 'g'), `<span class="highlight">${kanji}</span>`);
-                            li.innerHTML = `...${highlighted}...`;
-                            list.appendChild(li);
-                        });
-
-                        group.appendChild(list);
-                        grid.appendChild(group);
-                    });
-
-                    section.appendChild(grid);
-                    resultArea.appendChild(section);
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+                    const list = document
