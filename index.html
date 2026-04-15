@@ -191,7 +191,7 @@ lang: ja
             padding: 0 2px;
             border-radius: 2px;
             color: #000;
-            background-color: #fff59d; /* Highlight color */
+            background-color: #fff59d;
         }
 
         /* Footer */
@@ -201,6 +201,7 @@ lang: ja
             color: #757575;
             text-align: center;
         }
+        
         /* タブ用のスタイル */
         .tabs {
             display: flex;
@@ -219,7 +220,7 @@ lang: ja
             font-weight: 600;
             transition: all 0.2s;
             border-bottom: 3px solid transparent;
-            margin-bottom: -2px; /* 下線と重ねるため */
+            margin-bottom: -2px;
             font-family: inherit;
         }
         .tab-btn:hover {
@@ -268,7 +269,6 @@ lang: ja
         // PDF.js workerの設定
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        // 教育漢字データ (kanji_js.html 及び 教育漢字.csv より)
         const kanjiData = {
             1: "一右雨円王音下火花貝学気九休玉金空月犬見五口校左三山子四糸字耳七車手十出女小上森人水正生青夕石赤千川先早草足村大男竹中虫町天田土二日入年白八百文木本名目立力林六",
             2: "引羽雲園遠何科夏家歌画回会海絵外角楽活間丸岩顔汽記帰弓牛魚京強教近兄形計元言原戸古午後語工公広交光考行高黄合谷国黒今才細作算止市矢姉思紙寺自時室社弱首秋週春書少場色食心新親図数西声星晴切雪船線前組走多太体台地池知茶昼長鳥朝直通弟店点電刀冬当東答頭同道読内南肉馬売買麦半番父風分聞米歩母方北毎妹万明鳴毛門夜野友用曜来里理話",
@@ -291,13 +291,17 @@ lang: ja
             const resultArea = document.getElementById("resultArea");
 
             errorMsg.textContent = "";
-            if (!file) return;
+
+            if (!file) {
+                return;
+            }
 
             const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
             const isWord = file.name.toLowerCase().endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
             if (!isPDF && !isWord) {
                 errorMsg.textContent = "※PDFファイルまたはWordファイル(.docx)を選択してください。";
+                e.target.value = ''; // 選択状態をリセット
                 return;
             }
 
@@ -322,8 +326,11 @@ lang: ja
 
             } catch (err) {
                 console.error(err);
-                errorMsg.textContent = "ファイルの解析に失敗しました。ファイルが破損しているか、パスワード保護されている可能性があります。";
-                resultArea.innerHTML = '<p class="placeholder-text">読み込みエラーが発生しました。</p>';
+                errorMsg.textContent = "ファイルの解析に失敗しました。";
+                resultArea.innerHTML = `<p class="placeholder-text" style="color:#e53935; font-weight:bold;">エラー: ${err.message}<br>（詳細なエラー原因はブラウザのコンソールをご確認ください）</p>`;
+            } finally {
+                // 次回同じファイルを選んでも反応するようにリセット
+                e.target.value = ''; 
             }
         });
 
@@ -331,13 +338,11 @@ lang: ja
             text = text.normalize('NFKC'); 
             const kanjiRegex = /\p{Script=Han}/gu;
             
-            // 学年ごとのデータを格納するオブジェクト
-            // 構造: { 1: { '一': Set(文脈), '右': Set(文脈) }, 2: {...}, ..., other: {...} }
             const gradeResults = {
                 1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 'other': {}
             };
             
-            const contextPadding = 12; // 前後何文字取得するか
+            const contextPadding = 12;
             let match;
             let totalKanjiFound = 0;
 
@@ -348,14 +353,12 @@ lang: ja
 
                 const start = Math.max(0, index - contextPadding);
                 const end = Math.min(text.length, index + contextPadding + 1);
-                // 改行文字などはスペースに置換して見やすくする
                 const context = text.substring(start, end).replace(/\s+/g, ' ');
 
                 if (!gradeResults[grade][char]) {
                     gradeResults[grade][char] = new Set();
                     totalKanjiFound++;
                 }
-                // 同一漢字でも5つ以上の文脈は省略（UIの圧迫を防ぐため）
                 if (gradeResults[grade][char].size < 5) {
                     gradeResults[grade][char].add(context);
                 }
@@ -373,7 +376,6 @@ lang: ja
             const resultArea = document.getElementById("resultArea");
             resultArea.innerHTML = "";
 
-            // タブの短いラベルと、詳細なラベル
             const tabLabels = {
                 1: "小1", 2: "小2", 3: "小3",
                 4: "小4", 5: "小5", 6: "小6",
@@ -385,16 +387,13 @@ lang: ja
                 'other': "小学校で習わない漢字"
             };
 
-            // 該当する漢字が1つ以上ある学年だけを抽出
             const gradesWithData = ['1', '2', '3', '4', '5', '6', 'other'].filter(grade => 
                 Object.keys(gradeResults[grade]).length > 0
             );
 
-            // タブのコンテナ
             const tabsContainer = document.createElement("div");
             tabsContainer.className = "tabs";
             
-            // コンテンツのコンテナ
             const contentContainer = document.createElement("div");
 
             let isFirst = true;
@@ -402,26 +401,18 @@ lang: ja
             gradesWithData.forEach(grade => {
                 const kanjisInGrade = Object.keys(gradeResults[grade]).sort();
                 
-                // ---------------------------
-                // 1. タブボタンの生成
-                // ---------------------------
                 const tabBtn = document.createElement("button");
                 tabBtn.className = "tab-btn" + (isFirst ? " active" : "");
                 tabBtn.innerHTML = `${tabLabels[grade]} <span style="font-size:12px; font-weight:normal;">(${kanjisInGrade.length})</span>`;
                 
-                // ---------------------------
-                // 2. タブコンテンツの生成
-                // ---------------------------
                 const section = document.createElement("div");
                 section.className = `tab-content grade-section grade-${grade}` + (isFirst ? " active" : "");
 
-                // 学年タイトル
                 const title = document.createElement("div");
                 title.className = "grade-title";
                 title.innerHTML = `<span>${fullLabels[grade]}</span> <span class="count">${kanjisInGrade.length}種類の漢字</span>`;
                 section.appendChild(title);
 
-                // 漢字グリッド
                 const grid = document.createElement("div");
                 grid.className = "kanji-grid";
 
@@ -434,4 +425,40 @@ lang: ja
                     header.innerHTML = `<span class="kanji-char">${kanji}</span>`;
                     group.appendChild(header);
 
-                    const list = document
+                    const list = document.createElement("ul");
+                    list.className = "context-list";
+                    
+                    gradeResults[grade][kanji].forEach(ctx => {
+                        const li = document.createElement("li");
+                        li.className = "context-item";
+                        const highlighted = ctx.replace(new RegExp(kanji, 'g'), `<span class="highlight">${kanji}</span>`);
+                        li.innerHTML = `...${highlighted}...`;
+                        list.appendChild(li);
+                    });
+
+                    group.appendChild(list);
+                    grid.appendChild(group);
+                });
+
+                section.appendChild(grid);
+                
+                tabBtn.addEventListener("click", () => {
+                    tabsContainer.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                    contentContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    
+                    tabBtn.classList.add('active');
+                    section.classList.add('active');
+                });
+
+                tabsContainer.appendChild(tabBtn);
+                contentContainer.appendChild(section);
+                
+                isFirst = false;
+            });
+
+            resultArea.appendChild(tabsContainer);
+            resultArea.appendChild(contentContainer);
+        }
+    </script>
+</body>
+</html>
