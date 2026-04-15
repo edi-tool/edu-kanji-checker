@@ -9,9 +9,18 @@ lang: ja
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <title>{{ page.title }}</title>
     <meta name="description" content="{{ page.description }}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}/">
+
+    <!-- OGP -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ page.title }}">
+    <meta property="og:description" content="{{ page.description }}">
+    <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}/">
+    <meta property="og:locale" content="ja_JP">
 
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     
@@ -53,7 +62,7 @@ lang: ja
         }
 
         /* Headings */
-        h2 { 
+        h1 { 
             margin-top: 0; 
             margin-bottom: 4px;
             font-size: 22px;
@@ -250,7 +259,7 @@ lang: ja
 <body>
 
     <div class="container">
-        <h2>教育漢字さん</h2>
+        <h1>教育漢字さん</h1>
         <span class="subtitle">PDFまたはWord(.docx)からテキストを抽出し、漢字の学習学年を判定します</span>
         
         <div class="instruction">ファイルを選択してください (PDF / Word)</div>
