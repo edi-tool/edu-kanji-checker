@@ -15,7 +15,6 @@ lang: ja
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}/">
 
-    <!-- OGP -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ page.title }}">
     <meta property="og:description" content="{{ page.description }}">
@@ -220,32 +219,38 @@ lang: ja
         .tabs {
             display: flex;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 6px;
             margin-bottom: 24px;
             border-bottom: 2px solid #e0e0e0;
         }
         .tab-btn {
-            padding: 10px 16px;
-            border: none;
-            background-color: transparent;
+            padding: 10px 18px;
+            border: 1px solid #e0e0e0;
+            background-color: #fafafa;
             color: #757575;
             cursor: pointer;
             font-size: 15px;
             font-weight: 600;
             transition: all 0.2s;
             border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
+            margin-bottom: -2px; /* border-bottomに重ねる */
+            border-radius: 8px 8px 0 0;
             font-family: inherit;
         }
         .tab-btn:hover {
             color: #0f0f0f;
-            background-color: #f5f5f5;
-            border-radius: 6px 6px 0 0;
+            background-color: #f0f0f0;
         }
-        .tab-btn.active {
-            color: #118e9e;
-            border-bottom-color: #118e9e;
-        }
+        
+        /* 学年ごとのアクティブタブの色設定 */
+        .tab-btn.tab-1.active { background-color: #ffebee; color: #d32f2f; border-color: #ffcdd2; border-bottom-color: #e53935; }
+        .tab-btn.tab-2.active { background-color: #e3f2fd; color: #1976d2; border-color: #bbdefb; border-bottom-color: #1e88e5; }
+        .tab-btn.tab-3.active { background-color: #e8f5e9; color: #388e3c; border-color: #c8e6c9; border-bottom-color: #43a047; }
+        .tab-btn.tab-4.active { background-color: #fff3e0; color: #f57c00; border-color: #ffe0b2; border-bottom-color: #fb8c00; }
+        .tab-btn.tab-5.active { background-color: #f3e5f5; color: #7b1fa2; border-color: #e1bee7; border-bottom-color: #8e24aa; }
+        .tab-btn.tab-6.active { background-color: #e0f7fa; color: #0097a7; border-color: #b2ebf2; border-bottom-color: #00acc1; }
+        .tab-btn.tab-other.active { background-color: #eceff1; color: #455a64; border-color: #cfd8dc; border-bottom-color: #546e7a; }
+
         .tab-content {
             display: none;
         }
@@ -420,7 +425,8 @@ lang: ja
                 const kanjisInGrade = Object.keys(gradeResults[grade]).sort();
                 
                 const tabBtn = document.createElement("button");
-                tabBtn.className = "tab-btn" + (isFirst ? " active" : "");
+                // 学年ごとの固有クラス(tab-X)を付与するよう修正
+                tabBtn.className = `tab-btn tab-${grade}` + (isFirst ? " active" : "");
                 tabBtn.innerHTML = `${tabLabels[grade]} <span style="font-size:12px; font-weight:normal;">(${kanjisInGrade.length})</span>`;
                 
                 const section = document.createElement("div");
