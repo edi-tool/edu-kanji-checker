@@ -28,8 +28,14 @@ lang: ja
 
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+    <script>
+        window.pdfjsReady = import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.1.200/build/pdf.min.mjs').then(pdfjsLib => {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.1.200/build/pdf.worker.min.mjs';
+            window.pdfjsLib = pdfjsLib;
+            return pdfjsLib;
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.12.0/mammoth.browser.min.js"></script>
     <script src="kanji_data.js"></script>
     <style>
         /* ===== 共通デザイントークン（事務ツール5種で統一） ===== */
@@ -315,9 +321,6 @@ lang: ja
     </footer>
 
     <script>
-        // PDF.js workerの設定
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
         // kanjiData は kanji_data.js で定義
 
         // innerHTMLへ挿入する前にHTML特殊文字をエスケープ（文書由来のテキスト対策）
@@ -364,7 +367,8 @@ lang: ja
                 let fullText = "";
 
                 if (isPDF) {
-                    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                    const pdfjsLib = await window.pdfjsReady;
+                    const pdf = await pdfjsLib.getDocument({data: arrayBuffer, isEvalSupported: false}).promise;
                     for (let i = 1; i <= pdf.numPages; i++) {
                         const page = await pdf.getPage(i);
                         const textContent = await page.getTextContent();
