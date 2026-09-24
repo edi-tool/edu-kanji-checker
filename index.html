@@ -20,9 +20,11 @@ lang: ja
     <meta property="og:title" content="教育漢字さん | {{ page.title }}">
     <meta property="og:description" content="{{ page.description }}">
     <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}/">
-    <meta property="og:image" content="{{ site.url }}{{ site.baseurl }}/favicon.png">
+    <meta property="og:image" content="{{ site.url }}{{ site.baseurl }}/ogp.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:locale" content="ja_JP">
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
 
     <link rel="icon" href="favicon.png" type="image/png">
 
@@ -64,8 +66,9 @@ lang: ja
             line-height: 1.5;
             letter-spacing: -0.4px;
             font-feature-settings: "liga";
-            word-break: break-all;
-            overflow-wrap: break-word;
+            /* 和文は1字ごとに折り返せるので break-all は不要。英単語（License 等）を途中で割らない */
+            word-break: normal;
+            overflow-wrap: anywhere;
             line-break: strict;
             
             display: flex;
@@ -207,8 +210,16 @@ lang: ja
             padding: 16px;
             margin-bottom: 24px;
         }
+        .distribution-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
         .distribution-total {
-            margin: 0 0 12px;
+            margin: 0;
             font-size: 14px;
             font-weight: 600;
             font-variant-numeric: tabular-nums;
@@ -383,6 +394,38 @@ lang: ja
             border-radius: 2px;
             color: #000;
             background-color: #fff59d;
+        }
+
+
+        /* 印刷: 結果だけを紙に出す（入力欄・ボタン・フッターは隠す） */
+        .print-btn {
+            border: 1px solid var(--border);
+            background-color: var(--surface);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 8px 16px;
+            min-height: 40px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .print-btn:hover {
+            border-color: var(--accent);
+            background-color: var(--accent-soft);
+        }
+        @media print {
+            body { background: #fff; padding: 0; display: block; }
+            .container { max-width: none; border: none; box-shadow: none; padding: 0; }
+            .brand-link, .drop-zone, #fileInput, #errorMsg, footer,
+            .copy-btn, .print-btn, .report-btn { display: none !important; }
+            .kanji-group, .summary, .distribution { break-inside: avoid; box-shadow: none; }
+            /* タブは使えないので全学年を順に出す */
+            .tabs { display: none !important; }
+            .tab-content { display: block !important; animation: none !important; margin-bottom: 24px; }
+            .grade-title { break-after: avoid; }
+            .dist-bar span, .dist-legend li::before { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
         }
 
         /* Footer */
@@ -646,7 +689,10 @@ lang: ja
             const distribution = document.createElement("div");
             distribution.className = "distribution";
             distribution.innerHTML = `
-                <p class="distribution-total">漢字 <strong>${totalKinds}</strong> 字種<span>出現 ${totalCount} 回</span></p>
+                <div class="distribution-head">
+                    <p class="distribution-total">漢字 <strong>${totalKinds}</strong> 字種<span>出現 ${totalCount} 回</span></p>
+                    <button type="button" class="print-btn" onclick="window.print()">全学年を印刷</button>
+                </div>
                 <div class="dist-bar" role="img" aria-label="学年別の字種数: ${gradesWithData.map(g => `${tabLabels[g]} ${kindsByGrade[g]}字`).join('、')}">
                     ${gradesWithData.map(g => `<span class="grade-${g}" style="width:${(kindsByGrade[g] / totalKinds * 100).toFixed(2)}%"></span>`).join('')}
                 </div>
