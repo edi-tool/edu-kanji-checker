@@ -17,7 +17,7 @@ lang: ja
     <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}/">
 
     <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ page.title }}">
+    <meta property="og:title" content="教育漢字さん | {{ page.title }}">
     <meta property="og:description" content="{{ page.description }}">
     <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}/">
     <meta property="og:image" content="{{ site.url }}{{ site.baseurl }}/favicon.png">
@@ -44,10 +44,11 @@ lang: ja
             --surface: #fff;
             --border: #e0e0e0;
             --text: #0f0f0f;
-            --text-sub: #757575;
+            --text-sub: #6b6b6b;
             --accent: #f28c06;
             --accent-dark: #d97a00;
             --accent-soft: #fff8f0;
+            --accent-text: #b35f00; /* 文字用のアクセント（白地で AA を満たす濃さ） */
             --danger: #e53935;
         }
         :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -58,8 +59,8 @@ lang: ja
         /* Typography & Visual Theme */
         body {
             font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", Meiryo, Roboto, sans-serif;
-            background-color: #f8f6f2;
-            color: #0f0f0f;
+            background-color: var(--bg);
+            color: var(--text);
             line-height: 1.5;
             letter-spacing: -0.4px;
             font-feature-settings: "liga";
@@ -78,8 +79,8 @@ lang: ja
 
         /* Cards Component */
         .container {
-            background-color: #fff;
-            border: 1px solid #e0e0e0;
+            background-color: var(--surface);
+            border: 1px solid var(--border);
             border-radius: 12px;
             padding: 32px 24px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -89,17 +90,32 @@ lang: ja
             box-sizing: border-box;
         }
 
+        @media (max-width: 480px) {
+            .container { padding: 24px 16px; }
+        }
+
         /* Headings */
-        h1 { 
-            margin-top: 0; 
+        .brand-link {
+            display: inline-block;
             margin-bottom: 4px;
-            font-size: 22px;
+            font-size: 12px;
             font-weight: 600;
-            color: #0f0f0f; 
+            color: var(--text-sub);
+            text-decoration: none;
+            letter-spacing: 0.02em;
+        }
+        .brand-link:hover { color: var(--accent-text); text-decoration: underline; }
+        h1 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
         }
         .subtitle {
             font-size: 13px;
-            color: #757575;
+            line-height: 1.6;
+            color: var(--text-sub);
             display: block;
             margin-bottom: 24px;
         }
@@ -107,34 +123,61 @@ lang: ja
         .instruction {
             font-size: 14px;
             font-weight: 600;
-            color: #0f0f0f;
+            color: var(--text);
             margin-bottom: 8px;
             text-align: left;
         }
         
-        /* File Input Styling */
-        input[type="file"] {
-            width: 100%;
-            padding: 10px 12px;
-            margin-bottom: 8px;
+        /* ファイル選択: クリック・ドラッグ＆ドロップ・キーボードに対応したドロップゾーン */
+        .drop-zone {
+            display: block;
+            border: 2px dashed #d4d4d4;
+            border-radius: 12px;
             background-color: #fafafa;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.2s, background-color 0.2s;
-            font-family: inherit;
+            padding: 24px 16px;
+            margin-bottom: 8px;
             cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
         }
-        input[type="file"]:hover {
+        /* input 本体は隠し、キーボードでフォーカスしたときはゾーンに枠を出す（Enter/Space で選択画面が開く） */
+        #fileInput:focus-visible + .drop-zone {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+        .drop-zone:hover, .drop-zone.is-dragover {
             border-color: var(--accent);
             background-color: var(--accent-soft);
+        }
+        .drop-icon {
+            display: block;
+            width: 28px;
+            height: 28px;
+            margin: 0 auto 8px;
+            color: var(--accent);
+        }
+        .drop-title {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .drop-note {
+            display: block;
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: 4px;
+        }
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
         }
 
         /* Error Message */
         .error-msg {
-            color: #e53935;
+            color: var(--danger);
             font-size: 13px;
             min-height: 18px;
             margin-bottom: 8px;
@@ -144,11 +187,79 @@ lang: ja
 
         /* Result Area */
         #resultArea {
-            margin-top: 24px;
+            margin-top: 16px;
             text-align: left;
         }
+        .placeholder-error {
+            color: var(--danger);
+            font-weight: 600;
+        }
+        .result-ok {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        /* 学年別の分布（積み上げ横棒＋凡例） */
+        .distribution {
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .distribution-total {
+            margin: 0 0 12px;
+            font-size: 14px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+        .distribution-total strong {
+            color: var(--accent-text);
+            font-size: 18px;
+        }
+        .distribution-total span {
+            font-weight: 400;
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-left: 4px;
+        }
+        .dist-bar {
+            display: flex;
+            height: 12px;
+            border-radius: 999px;
+            overflow: hidden;
+            background-color: var(--border);
+        }
+        .dist-bar span { background-color: var(--g); }
+        .dist-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 16px;
+            margin: 12px 0 0;
+            padding: 0;
+            list-style: none;
+            font-size: 12px;
+            color: var(--text-sub);
+            font-variant-numeric: tabular-nums;
+        }
+        .dist-legend li {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .dist-legend li::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            background-color: var(--g);
+        }
+        .dist-legend b {
+            color: var(--text);
+        }
+
         .placeholder-text {
-            color: #9e9e9e;
+            color: var(--text-sub);
             text-align: center;
             font-size: 14px;
             padding: 40px 0;
@@ -170,8 +281,32 @@ lang: ja
         }
         .grade-title .count {
             font-size: 14px;
-            color: #757575;
+            color: var(--text-sub);
             font-weight: normal;
+        }
+        .grade-title { flex-wrap: wrap; gap: 8px; }
+        .grade-title > span, .grade-title .count, .copy-btn { white-space: nowrap; }
+        .grade-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .copy-btn {
+            border: 1px solid var(--border);
+            background-color: var(--surface);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 6px 12px;
+            min-height: 36px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .copy-btn:hover {
+            border-color: var(--accent);
+            background-color: var(--accent-soft);
         }
 
         /* Kanji Result Items */
@@ -182,14 +317,15 @@ lang: ja
         }
         .kanji-group {
             padding: 16px;
-            border: 1px solid #f0f0f0;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            background-color: #fcfcfc;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            background-color: var(--surface);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
         .kanji-header {
             display: flex;
-            align-items: baseline;
+            align-items: center;
+            gap: 8px;
             margin-bottom: 12px;
             border-bottom: 1px dashed #e0e0e0;
             padding-bottom: 8px;
@@ -197,17 +333,34 @@ lang: ja
         .kanji-char {
             font-size: 28px;
             font-weight: bold;
-            margin-right: 12px;
+            line-height: 1.2;
+            margin-right: 4px;
+        }
+        /* 出現回数バッジ（常用漢字さんと同じ形） */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            height: 22px;
+            padding: 0 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: #f5f5f5;
+            color: var(--text-sub);
+            font-variant-numeric: tabular-nums;
         }
 
-        /* Grade Colors */
-        .grade-1 .kanji-char, .grade-1 .grade-title { color: #e53935; border-color: #e53935; }
-        .grade-2 .kanji-char, .grade-2 .grade-title { color: #1e88e5; border-color: #1e88e5; }
-        .grade-3 .kanji-char, .grade-3 .grade-title { color: #43a047; border-color: #43a047; }
-        .grade-4 .kanji-char, .grade-4 .grade-title { color: #fb8c00; border-color: #fb8c00; }
-        .grade-5 .kanji-char, .grade-5 .grade-title { color: #8e24aa; border-color: #8e24aa; }
-        .grade-6 .kanji-char, .grade-6 .grade-title { color: #00acc1; border-color: #00acc1; }
-        .grade-other .kanji-char, .grade-other .grade-title { color: #546e7a; border-color: #546e7a; }
+        /* Grade Colors: --g は棒・線、--g-text は文字用（白地で読める濃さに寄せる） */
+        .grade-1 { --g: #e53935; --g-text: #c62828; }
+        .grade-2 { --g: #1e88e5; --g-text: #1565c0; }
+        .grade-3 { --g: #43a047; --g-text: #2e7d32; }
+        .grade-4 { --g: #fb8c00; --g-text: #c25e00; }
+        .grade-5 { --g: #8e24aa; --g-text: #7b1fa2; }
+        .grade-6 { --g: #00acc1; --g-text: #00838f; }
+        .grade-other { --g: #78909c; --g-text: #455a64; }
+        .grade-section .kanji-char, .grade-title { color: var(--g-text); }
+        .grade-title { border-color: var(--g); }
 
         .context-list {
             margin: 0;
@@ -236,9 +389,12 @@ lang: ja
         footer {
             margin-top: 32px;
             font-size: 12px;
-            color: #757575;
+            color: var(--text-sub);
             text-align: center;
+            word-break: normal;
         }
+        footer a { color: inherit; }
+        footer a:hover { color: var(--accent-text); }
         
         /* タブ用のスタイル */
         .tabs {
@@ -270,11 +426,21 @@ lang: ja
         /* 学年ごとのアクティブタブの色設定 */
         .tab-btn.tab-1.active { background-color: #ffebee; color: #d32f2f; border-color: #ffcdd2; border-bottom-color: #e53935; }
         .tab-btn.tab-2.active { background-color: #e3f2fd; color: #1976d2; border-color: #bbdefb; border-bottom-color: #1e88e5; }
-        .tab-btn.tab-3.active { background-color: #e8f5e9; color: #388e3c; border-color: #c8e6c9; border-bottom-color: #43a047; }
-        .tab-btn.tab-4.active { background-color: #fff3e0; color: #f57c00; border-color: #ffe0b2; border-bottom-color: #fb8c00; }
+        .tab-btn.tab-3.active { background-color: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; border-bottom-color: #43a047; }
+        .tab-btn.tab-4.active { background-color: #fff3e0; color: #c25e00; border-color: #ffe0b2; border-bottom-color: #fb8c00; }
         .tab-btn.tab-5.active { background-color: #f3e5f5; color: #7b1fa2; border-color: #e1bee7; border-bottom-color: #8e24aa; }
-        .tab-btn.tab-6.active { background-color: #e0f7fa; color: #0097a7; border-color: #b2ebf2; border-bottom-color: #00acc1; }
+        .tab-btn.tab-6.active { background-color: #e0f7fa; color: #00838f; border-color: #b2ebf2; border-bottom-color: #00acc1; }
         .tab-btn.tab-other.active { background-color: #eceff1; color: #455a64; border-color: #cfd8dc; border-bottom-color: #546e7a; }
+
+        @media (max-width: 480px) {
+            .tabs { gap: 4px; }
+            .tab-btn { padding: 8px 10px; font-size: 14px; }
+        }
+        .tab-count {
+            font-size: 12px;
+            font-weight: normal;
+            font-variant-numeric: tabular-nums;
+        }
 
         .tab-content {
             display: none;
@@ -303,20 +469,25 @@ lang: ja
 <body>
 
     <div class="container">
+        <a class="brand-link" href="https://edi-tool.github.io/">edi-tool</a>
         <h1>教育漢字さん</h1>
         <span class="subtitle">PDFまたはWord(.docx)からテキストを抽出し、漢字の学習学年を判定します。</span>
         
-        <div class="instruction">ファイルを選択してください (PDF / Word)</div>
-        <input type="file" id="fileInput" aria-label="PDFまたはWordファイルを選択" accept=".pdf, application/pdf, .docx, application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+        <input type="file" id="fileInput" class="visually-hidden" aria-label="PDFまたはWordファイルを選択" accept=".pdf, application/pdf, .docx, application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+        <label class="drop-zone" id="dropZone" for="fileInput">
+            <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><polyline points="9 15 12 12 15 15"></polyline></svg>
+            <span class="drop-title">PDF / Word をドロップ、またはクリックして選択</span>
+            <span class="drop-note">.pdf / .docx に対応（ファイルは外部送信しません）</span>
+        </label>
         <div id="errorMsg" class="error-msg" role="alert" aria-live="polite"></div>
         
-        <div id="resultArea">
+        <div id="resultArea" aria-live="polite">
             <p class="placeholder-text">ファイルを読み込むと、検出された漢字が学年別に分類・表示されます。</p>
         </div>
     </div>
 
     <footer>
-        &copy; 2026 ISHIKAWA, Natsuki | MIT License<br>
+        <a href="https://edi-tool.github.io/">← edi-tool ツール一覧</a> | &copy; 2026 ISHIKAWA, Natsuki | MIT License<br>
         (漢字データ出典：小学校学習指導要領)
     </footer>
 
@@ -341,8 +512,26 @@ lang: ja
             return 'other';
         }
 
-        document.getElementById('fileInput').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+
+        fileInput.addEventListener('change', async function(e) {
+            await handleFile(e.target.files[0]);
+            // 次回同じファイルを選んでも反応するようにリセット
+            e.target.value = '';
+        });
+
+        // ドラッグ＆ドロップ。ゾーン外に落としてもブラウザがファイルを開かないよう、ページ全体で既定動作を止める
+        ['dragover', 'drop'].forEach(type => window.addEventListener(type, e => e.preventDefault()));
+        dropZone.addEventListener('dragover', () => dropZone.classList.add('is-dragover'));
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('is-dragover'));
+        dropZone.addEventListener('drop', e => {
+            dropZone.classList.remove('is-dragover');
+            const file = e.dataTransfer && e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        async function handleFile(file) {
             const errorMsg = document.getElementById("errorMsg");
             const resultArea = document.getElementById("resultArea");
 
@@ -357,19 +546,20 @@ lang: ja
 
             if (!isPDF && !isWord) {
                 errorMsg.textContent = "※PDFファイルまたはWordファイル(.docx)を選択してください。";
-                e.target.value = ''; // 選択状態をリセット
                 return;
             }
 
             try {
-                resultArea.innerHTML = '<p class="placeholder-text">テキストを抽出・解析中...</p>';
+                resultArea.innerHTML = '<p class="placeholder-text" id="progressText">テキストを抽出・解析中...</p>';
                 const arrayBuffer = await file.arrayBuffer();
                 let fullText = "";
 
                 if (isPDF) {
                     const pdfjsLib = await window.pdfjsReady;
                     const pdf = await pdfjsLib.getDocument({data: arrayBuffer, isEvalSupported: false}).promise;
+                    const progressText = document.getElementById('progressText');
                     for (let i = 1; i <= pdf.numPages; i++) {
+                        if (progressText) progressText.textContent = `テキストを抽出・解析中... (${i} / ${pdf.numPages} ページ)`;
                         const page = await pdf.getPage(i);
                         const textContent = await page.getTextContent();
                         fullText += textContent.items.map(item => item.str).join('');
@@ -384,12 +574,9 @@ lang: ja
             } catch (err) {
                 console.error(err);
                 errorMsg.textContent = "ファイルの解析に失敗しました。";
-                resultArea.innerHTML = `<p class="placeholder-text" style="color:#e53935; font-weight:bold;">エラー: ${escapeHTML(String(err.message || err))}<br>（詳細なエラー原因はブラウザのコンソールをご確認ください）</p>`;
-            } finally {
-                // 次回同じファイルを選んでも反応するようにリセット
-                e.target.value = ''; 
+                resultArea.innerHTML = `<p class="placeholder-text placeholder-error">エラー: ${escapeHTML(String(err.message || err))}<br>（詳細なエラー原因はブラウザのコンソールをご確認ください）</p>`;
             }
-        });
+        }
 
         function analyzeKanji(text) {
             text = text.normalize('NFKC'); 
@@ -402,6 +589,7 @@ lang: ja
             const contextPadding = 12;
             let match;
             let totalKanjiFound = 0;
+            const counts = {}; // 漢字ごとの出現回数（文脈は5件までだが回数はすべて数える）
 
             while ((match = kanjiRegex.exec(text)) !== null) {
                 const char = match[0];
@@ -412,6 +600,7 @@ lang: ja
                 const end = Math.min(text.length, index + contextPadding + 1);
                 const context = text.substring(start, end).replace(/\s+/g, ' ');
 
+                counts[char] = (counts[char] || 0) + 1;
                 if (!gradeResults[grade][char]) {
                     gradeResults[grade][char] = new Set();
                     totalKanjiFound++;
@@ -422,14 +611,14 @@ lang: ja
             }
 
             if (totalKanjiFound === 0) {
-                document.getElementById("resultArea").innerHTML = '<p class="placeholder-text" style="color:#2e7d32; font-weight:600;">漢字が見つかりませんでした。</p>';
+                document.getElementById("resultArea").innerHTML = '<p class="placeholder-text result-ok">漢字が見つかりませんでした。</p>';
                 return;
             }
 
-            renderResults(gradeResults);
+            renderResults(gradeResults, counts);
         }
 
-        function renderResults(gradeResults) {
+        function renderResults(gradeResults, counts) {
             const resultArea = document.getElementById("resultArea");
             resultArea.innerHTML = "";
 
@@ -444,31 +633,83 @@ lang: ja
                 'other': "小学校で習わない漢字"
             };
 
-            const gradesWithData = ['1', '2', '3', '4', '5', '6', 'other'].filter(grade => 
+            const gradesWithData = ['1', '2', '3', '4', '5', '6', 'other'].filter(grade =>
                 Object.keys(gradeResults[grade]).length > 0
             );
 
+            // 学年別の分布（字種数の積み上げ横棒と凡例）
+            const kindsByGrade = {};
+            gradesWithData.forEach(grade => { kindsByGrade[grade] = Object.keys(gradeResults[grade]).length; });
+            const totalKinds = gradesWithData.reduce((sum, g) => sum + kindsByGrade[g], 0);
+            const totalCount = Object.values(counts).reduce((sum, n) => sum + n, 0);
+
+            const distribution = document.createElement("div");
+            distribution.className = "distribution";
+            distribution.innerHTML = `
+                <p class="distribution-total">漢字 <strong>${totalKinds}</strong> 字種<span>出現 ${totalCount} 回</span></p>
+                <div class="dist-bar" role="img" aria-label="学年別の字種数: ${gradesWithData.map(g => `${tabLabels[g]} ${kindsByGrade[g]}字`).join('、')}">
+                    ${gradesWithData.map(g => `<span class="grade-${g}" style="width:${(kindsByGrade[g] / totalKinds * 100).toFixed(2)}%"></span>`).join('')}
+                </div>
+                <ul class="dist-legend">
+                    ${gradesWithData.map(g => `<li class="grade-${g}">${tabLabels[g]} <b>${kindsByGrade[g]}</b></li>`).join('')}
+                </ul>`;
+            resultArea.appendChild(distribution);
+
             const tabsContainer = document.createElement("div");
             tabsContainer.className = "tabs";
-            
+            tabsContainer.setAttribute("role", "tablist");
+            tabsContainer.setAttribute("aria-label", "学年");
+
             const contentContainer = document.createElement("div");
+            const tabButtons = [];
 
-            let isFirst = true;
+            function selectTab(index, focus) {
+                tabButtons.forEach((btn, i) => {
+                    const selected = i === index;
+                    btn.classList.toggle('active', selected);
+                    btn.setAttribute('aria-selected', String(selected));
+                    btn.tabIndex = selected ? 0 : -1;
+                    document.getElementById(btn.getAttribute('aria-controls')).classList.toggle('active', selected);
+                });
+                if (focus) tabButtons[index].focus();
+            }
 
-            gradesWithData.forEach(grade => {
+            gradesWithData.forEach((grade, index) => {
                 const kanjisInGrade = Object.keys(gradeResults[grade]).sort();
-                
+                const isFirst = index === 0;
+
                 const tabBtn = document.createElement("button");
-                // 学年ごとの固有クラス(tab-X)を付与するよう修正
+                tabBtn.type = "button";
+                tabBtn.id = `tab-${grade}`;
+                // 学年ごとの固有クラス(tab-X)を付与
                 tabBtn.className = `tab-btn tab-${grade}` + (isFirst ? " active" : "");
-                tabBtn.innerHTML = `${tabLabels[grade]} <span style="font-size:12px; font-weight:normal;">(${kanjisInGrade.length})</span>`;
-                
+                tabBtn.setAttribute("role", "tab");
+                tabBtn.setAttribute("aria-controls", `panel-${grade}`);
+                tabBtn.setAttribute("aria-selected", String(isFirst));
+                tabBtn.tabIndex = isFirst ? 0 : -1;
+                tabBtn.innerHTML = `${tabLabels[grade]} <span class="tab-count">(${kanjisInGrade.length})</span>`;
+
                 const section = document.createElement("div");
+                section.id = `panel-${grade}`;
                 section.className = `tab-content grade-section grade-${grade}` + (isFirst ? " active" : "");
+                section.setAttribute("role", "tabpanel");
+                section.setAttribute("aria-labelledby", tabBtn.id);
 
                 const title = document.createElement("div");
                 title.className = "grade-title";
-                title.innerHTML = `<span>${fullLabels[grade]}</span> <span class="count">${kanjisInGrade.length}種類の漢字</span>`;
+                title.innerHTML = `<span>${fullLabels[grade]}</span>
+                    <span class="grade-actions"><span class="count">${kanjisInGrade.length}種類の漢字</span>
+                    <button type="button" class="copy-btn">この学年の漢字をコピー</button></span>`;
+                const copyBtn = title.querySelector(".copy-btn");
+                copyBtn.addEventListener("click", async () => {
+                    try {
+                        await navigator.clipboard.writeText(kanjisInGrade.join(''));
+                        copyBtn.textContent = "コピーしました";
+                    } catch (err) {
+                        copyBtn.textContent = "コピーできませんでした";
+                    }
+                    setTimeout(() => { copyBtn.textContent = "この学年の漢字をコピー"; }, 2000);
+                });
                 section.appendChild(title);
 
                 const grid = document.createElement("div");
@@ -480,12 +721,12 @@ lang: ja
 
                     const header = document.createElement("div");
                     header.className = "kanji-header";
-                    header.innerHTML = `<span class="kanji-char">${kanji}</span>`;
+                    header.innerHTML = `<span class="kanji-char">${kanji}</span><span class="badge">${counts[kanji]}回</span>`;
                     group.appendChild(header);
 
                     const list = document.createElement("ul");
                     list.className = "context-list";
-                    
+
                     gradeResults[grade][kanji].forEach(ctx => {
                         const li = document.createElement("li");
                         li.className = "context-item";
@@ -499,19 +740,25 @@ lang: ja
                 });
 
                 section.appendChild(grid);
-                
-                tabBtn.addEventListener("click", () => {
-                    tabsContainer.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                    contentContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    
-                    tabBtn.classList.add('active');
-                    section.classList.add('active');
+
+                tabBtn.addEventListener("click", () => selectTab(index, false));
+                // ←→ / Home / End でタブを移動（WAI-ARIA Tabs パターン）
+                tabBtn.addEventListener("keydown", e => {
+                    const last = gradesWithData.length - 1;
+                    let next = null;
+                    if (e.key === 'ArrowRight') next = index === last ? 0 : index + 1;
+                    else if (e.key === 'ArrowLeft') next = index === 0 ? last : index - 1;
+                    else if (e.key === 'Home') next = 0;
+                    else if (e.key === 'End') next = last;
+                    if (next !== null) {
+                        e.preventDefault();
+                        selectTab(next, true);
+                    }
                 });
 
+                tabButtons.push(tabBtn);
                 tabsContainer.appendChild(tabBtn);
                 contentContainer.appendChild(section);
-                
-                isFirst = false;
             });
 
             resultArea.appendChild(tabsContainer);
