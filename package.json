@@ -1,0 +1,12 @@
+{
+  "name": "edu-kanji-checker",
+  "private": true,
+  "description": "PDF・Word 内の漢字を小学校の学習学年別に分類するブラウザツール",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "check": "node scripts/check-static.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
