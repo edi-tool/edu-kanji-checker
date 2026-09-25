@@ -7,6 +7,7 @@
 
 - プレビュー: `python -m http.server 8000`
 - 整形: `npx prettier --write .`
+- テスト: `npm test` / HTML 静的チェック: `npm run check`
 
 ## プロジェクト方針
 
