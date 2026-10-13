@@ -750,6 +750,8 @@ lang: ja
             while ((match = kanjiRegex.exec(text)) !== null) {
                 const char = match[0];
                 const index = match.index;
+                // 踊り字「々」や漢数字のゼロ「〇」は漢字として数えない（配当表・常用漢字表の対象外の記号）
+                if (isNonKanjiHanMark(char)) continue;
                 const grade = getKanjiGrade(char);
 
                 const start = Math.max(0, index - contextPadding);

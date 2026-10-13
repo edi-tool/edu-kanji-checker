@@ -8,6 +8,10 @@
 - **入力**: 文章の貼り付けと .txt の読み込みに対応。
 - 学年別漢字配当表（1,026 字）自体は変更なし。テスト 11 件。PDF.js のバージョンは `index.html` の 3 か所（import・worker・`PDFJS_CMAP_URL`）と README をそろえる。
 
+## 2026-10-13 セッション（踊り字・漢数字ゼロの除外）
+
+- 「々」「〻」「〇」は Unicode 上 Script=Han のため「表外」の漢字として数えていた。`kanji-normalize.js` に `isNonKanjiHanMark` を追加し（常用漢字さんと同じ内容）、`analyzeKanji` で判定の対象から外す。テストを1件追加。未push。
+
 ## 2026-10-01 セッション（保守）
 
 - mammoth を 1.12.0 → 1.13.0 に更新（変更履歴付き Word の「移動」段落の読み取り改善。呼び出しは `await` のみで Promise 実装変更の影響なし）。

@@ -87,6 +87,13 @@ test('文章中の漢字を学年ごとに分類し、出現回数をすべて�
   assert.equal(counts['一'], 2);
 });
 
+test('踊り字「々」「〻」と漢数字のゼロ「〇」は漢字として数えない', () => {
+  const { run } = analyzer();
+  const { gradeResults, counts } = run('山々と二〇二六年〻');
+  assert.deepEqual(Object.keys(counts).sort(), ['二', '六', '山', '年'].sort());
+  assert.deepEqual(Object.keys(gradeResults.other), []);
+});
+
 test('文脈は前後 12 文字・1 字につき最大 5 件', () => {
   const { run } = analyzer();
   const pad = 'あ'.repeat(20);
