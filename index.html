@@ -1,7 +1,7 @@
 ---
 layout: null
 title: 漢字学習学年表示ツール
-description: PDF・Word（.docx）中の漢字を、小学校で習う学年（学年別漢字配当表・教育漢字1,026字）ごとに分類して表示する無料ツール。教材やプリントの漢字チェックに。ファイルは外部送信しません。
+description: PDF・Word（.docx）・テキスト中の漢字を、小学校で習う学年（学年別漢字配当表・教育漢字1,026字）ごとに分類して表示する無料ツール。中学校以降の常用漢字と表外漢字も区別。教材やプリントの漢字チェックに。ファイルは外部送信しません。
 lang: ja
 ---
 <!DOCTYPE html>
@@ -32,13 +32,14 @@ lang: ja
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <script>
-        window.pdfjsReady = import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.1.200/build/pdf.min.mjs').then(pdfjsLib => {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.1.200/build/pdf.worker.min.mjs';
+        window.pdfjsReady = import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/build/pdf.min.mjs').then(pdfjsLib => {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/build/pdf.worker.min.mjs';
             window.pdfjsLib = pdfjsLib;
             return pdfjsLib;
         });
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/mammoth@1.13.0/mammoth.browser.min.js" integrity="sha384-8NWE3bZDrmRI4IePMoQaEoLhAQ1MmRMJkdNgnGiHRFanTqsFKr0TmK6aSZvFJ/PO" crossorigin="anonymous"></script>
+    <script defer src="kanji-normalize.js"></script>
     <script defer src="kanji_data.js"></script>
     <style>
         /* ===== 共通デザイントークン（事務ツール5種で統一） ===== */
@@ -198,6 +199,46 @@ lang: ja
             color: var(--danger);
             font-weight: 600;
         }
+
+        /* テキスト貼り付け（ファイルにしなくても判定できる） */
+        .paste-box {
+            text-align: left;
+            margin-bottom: 8px;
+        }
+        .paste-box > summary {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-text);
+            cursor: pointer;
+            padding: 6px 0;
+        }
+        .paste-box textarea {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 4px 0 8px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font: inherit;
+            font-size: 16px; /* iOS で入力時に拡大されない大きさ */
+            line-height: 1.6;
+            resize: vertical;
+        }
+        .paste-box textarea:focus { border-color: var(--accent); }
+        .paste-btn {
+            border: 1px solid var(--accent);
+            background-color: var(--surface);
+            color: var(--accent-text);
+            border-radius: 8px;
+            padding: 8px 16px;
+            min-height: 40px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .paste-btn:hover { background-color: var(--accent-soft); }
         .result-ok {
             color: #2e7d32;
             font-weight: 600;
@@ -370,7 +411,8 @@ lang: ja
         .grade-4 { --g: #fb8c00; --g-text: #c25e00; }
         .grade-5 { --g: #8e24aa; --g-text: #7b1fa2; }
         .grade-6 { --g: #00acc1; --g-text: #00838f; }
-        .grade-other { --g: #78909c; --g-text: #455a64; }
+        .grade-joyo { --g: #78909c; --g-text: #455a64; }
+        .grade-other { --g: #6d4c41; --g-text: #5d4037; }
         .grade-section .kanji-char, .grade-title { color: var(--g-text); }
         .grade-title { border-color: var(--g); }
 
@@ -419,7 +461,7 @@ lang: ja
         @media print {
             body { background: #fff; padding: 0; display: block; }
             .container { max-width: none; border: none; box-shadow: none; padding: 0; }
-            .brand-link, .drop-zone, #fileInput, #errorMsg, footer,
+            .brand-link, .drop-zone, .paste-box, #fileInput, #errorMsg, footer,
             .copy-btn, .print-btn, .report-btn { display: none !important; }
             .kanji-group, .summary, .distribution { break-inside: avoid; box-shadow: none; }
             /* タブは使えないので全学年を順に出す */
@@ -474,7 +516,8 @@ lang: ja
         .tab-btn.tab-4.active { background-color: #fff3e0; color: #c25e00; border-color: #ffe0b2; border-bottom-color: #fb8c00; }
         .tab-btn.tab-5.active { background-color: #f3e5f5; color: #7b1fa2; border-color: #e1bee7; border-bottom-color: #8e24aa; }
         .tab-btn.tab-6.active { background-color: #e0f7fa; color: #00838f; border-color: #b2ebf2; border-bottom-color: #00acc1; }
-        .tab-btn.tab-other.active { background-color: #eceff1; color: #455a64; border-color: #cfd8dc; border-bottom-color: #546e7a; }
+        .tab-btn.tab-joyo.active { background-color: #eceff1; color: #455a64; border-color: #cfd8dc; border-bottom-color: #546e7a; }
+        .tab-btn.tab-other.active { background-color: #efebe9; color: #5d4037; border-color: #d7ccc8; border-bottom-color: #6d4c41; }
 
         @media (max-width: 480px) {
             .tabs { gap: 4px; }
@@ -508,7 +551,7 @@ lang: ja
             "name": "教育漢字さん",
             "alternateName": "{{ page.title }}",
             "url": "https://edi-tool.github.io/edu-kanji-checker/",
-            "description": "PDF・Word（.docx）中の漢字を、小学校で習う学年（学年別漢字配当表・教育漢字1,026字）ごとに分類して表示する無料ツール。教材やプリントの漢字チェックに。ファイルは外部送信しません。",
+            "description": "PDF・Word（.docx）・テキスト中の漢字を、小学校で習う学年（学年別漢字配当表・教育漢字1,026字）ごとに分類して表示する無料ツール。中学校以降の常用漢字と表外漢字も区別。教材やプリントの漢字チェックに。ファイルは外部送信しません。",
             "applicationCategory": "EducationalApplication",
             "operatingSystem": "Web",
             "browserRequirements": "Requires JavaScript",
@@ -553,24 +596,29 @@ lang: ja
     <div class="container">
         <a class="brand-link" href="https://edi-tool.github.io/">edi-tool</a>
         <h1>教育漢字さん</h1>
-        <span class="subtitle">PDFまたはWord(.docx)からテキストを抽出し、漢字の学習学年を判定します。</span>
+        <span class="subtitle">PDF・Word(.docx)・テキストの漢字を、小学校で習う学年ごとに分類します。</span>
         
-        <input type="file" id="fileInput" class="visually-hidden" aria-label="PDFまたはWordファイルを選択" accept=".pdf, application/pdf, .docx, application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+        <input type="file" id="fileInput" class="visually-hidden" aria-label="PDF・Word・テキストファイルを選択" accept=".pdf, application/pdf, .docx, application/vnd.openxmlformats-officedocument.wordprocessingml.document, .txt, text/plain">
         <label class="drop-zone" id="dropZone" for="fileInput">
             <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><polyline points="9 15 12 12 15 15"></polyline></svg>
-            <span class="drop-title">PDF / Word をドロップ、またはクリックして選択</span>
-            <span class="drop-note">.pdf / .docx に対応（ファイルは外部送信しません）</span>
+            <span class="drop-title">PDF / Word / テキストをドロップ、またはクリックして選択</span>
+            <span class="drop-note">.pdf / .docx / .txt に対応（ファイルは外部送信しません）</span>
         </label>
+        <details class="paste-box">
+            <summary>文章を貼り付けて判定する</summary>
+            <textarea id="pasteInput" rows="5" aria-label="判定する文章" placeholder="ここに文章を貼り付けてください"></textarea>
+            <button type="button" class="paste-btn" id="pasteBtn">この文章を判定</button>
+        </details>
         <div id="errorMsg" class="error-msg" role="alert" aria-live="polite"></div>
         
         <div id="resultArea" aria-live="polite">
-            <p class="placeholder-text">ファイルを読み込むと、検出された漢字が学年別に分類・表示されます。</p>
+            <p class="placeholder-text">ファイルを読み込むか文章を貼り付けると、検出された漢字が学年別に分類・表示されます。</p>
         </div>
     </div>
 
     <footer>
         <a href="https://edi-tool.github.io/">← edi-tool ツール一覧</a> | &copy; 2026 ISHIKAWA, Natsuki | MIT License<br>
-        (漢字データ出典：小学校学習指導要領)
+        (漢字データ出典：小学校学習指導要領「学年別漢字配当表」・常用漢字表)
     </footer>
 
     <script>
@@ -587,11 +635,9 @@ lang: ja
             }[match]));
         }
 
+        // 1〜6: 配当学年 / 'joyo': 配当表にない常用漢字（中学校以降） / 'other': 常用漢字表にない字
         function getKanjiGrade(char) {
-            for (let i = 1; i <= 6; i++) {
-                if (kanjiData[i].includes(char)) return i;
-            }
-            return 'other';
+            return KANJI_GRADE_MAP.get(char) || 'other';
         }
 
         const fileInput = document.getElementById('fileInput');
@@ -613,6 +659,21 @@ lang: ja
             if (file) handleFile(file);
         });
 
+        // 貼り付けた文章の判定
+        document.getElementById('pasteBtn').addEventListener('click', () => {
+            const errorMsg = document.getElementById("errorMsg");
+            const text = document.getElementById('pasteInput').value;
+            errorMsg.textContent = "";
+            if (!text.trim()) {
+                errorMsg.textContent = "※判定する文章を入力してください。";
+                return;
+            }
+            analyzeKanji(text);
+        });
+
+        // PDF.js の CMap の配信元（上の import と同じバージョンにそろえる）
+        const PDFJS_CMAP_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/cmaps/';
+
         async function handleFile(file) {
             const errorMsg = document.getElementById("errorMsg");
             const resultArea = document.getElementById("resultArea");
@@ -625,28 +686,33 @@ lang: ja
 
             const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
             const isWord = file.name.toLowerCase().endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            const isText = file.name.toLowerCase().endsWith('.txt');
 
-            if (!isPDF && !isWord) {
-                errorMsg.textContent = "※PDFファイルまたはWordファイル(.docx)を選択してください。";
+            if (!isPDF && !isWord && !isText) {
+                errorMsg.textContent = "※PDF・Word(.docx)・テキスト(.txt)のいずれかを選択してください。";
                 return;
             }
 
             try {
                 resultArea.innerHTML = '<p class="placeholder-text" id="progressText">テキストを抽出・解析中...</p>';
-                const arrayBuffer = await file.arrayBuffer();
                 let fullText = "";
 
-                if (isPDF) {
+                if (isText) {
+                    fullText = await file.text();
+                } else if (isPDF) {
+                    const arrayBuffer = await file.arrayBuffer();
                     const pdfjsLib = await window.pdfjsReady;
-                    const pdf = await pdfjsLib.getDocument({data: arrayBuffer, isEvalSupported: false}).promise;
+                    // cMapUrl: フォントを埋め込んでいない日本語 PDF は CMap がないと文字を取り出せない
+                    const pdf = await pdfjsLib.getDocument({data: arrayBuffer, isEvalSupported: false, cMapUrl: PDFJS_CMAP_URL, cMapPacked: true}).promise;
                     const progressText = document.getElementById('progressText');
                     for (let i = 1; i <= pdf.numPages; i++) {
                         if (progressText) progressText.textContent = `テキストを抽出・解析中... (${i} / ${pdf.numPages} ページ)`;
                         const page = await pdf.getPage(i);
                         const textContent = await page.getTextContent();
-                        fullText += textContent.items.map(item => item.str).join('');
+                        fullText += textContent.items.map(item => item.str).join('') + '\n';
                     }
                 } else if (isWord) {
+                    const arrayBuffer = await file.arrayBuffer();
                     const result = await mammoth.extractRawText({arrayBuffer: arrayBuffer});
                     fullText = result.value;
                 }
@@ -668,11 +734,12 @@ lang: ja
         }
 
         function analyzeKanji(text) {
-            text = text.normalize('NFKC'); 
+            // PDF 由来の部首用文字コード（⻑ など）や互換漢字を通常の漢字へ寄せてから判定する
+            text = normalizeKanjiText(text);
             const kanjiRegex = /\p{Script=Han}/gu;
             
             const gradeResults = {
-                1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 'other': {}
+                1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 'joyo': {}, 'other': {}
             };
             
             const contextPadding = 12;
@@ -714,15 +781,16 @@ lang: ja
             const tabLabels = {
                 1: "小1", 2: "小2", 3: "小3",
                 4: "小4", 5: "小5", 6: "小6",
-                'other': "その他"
+                'joyo': "中学〜", 'other': "表外"
             };
             const fullLabels = {
                 1: "小学1年生", 2: "小学2年生", 3: "小学3年生",
                 4: "小学4年生", 5: "小学5年生", 6: "小学6年生",
-                'other': "小学校で習わない漢字"
+                'joyo': "小学校で習わない常用漢字（中学校以降）",
+                'other': "常用漢字表にない漢字（表外漢字）"
             };
 
-            const gradesWithData = ['1', '2', '3', '4', '5', '6', 'other'].filter(grade =>
+            const gradesWithData = ['1', '2', '3', '4', '5', '6', 'joyo', 'other'].filter(grade =>
                 Object.keys(gradeResults[grade]).length > 0
             );
 

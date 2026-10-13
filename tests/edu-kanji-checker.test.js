@@ -9,9 +9,9 @@ function analyzer() {
   const out = {};
   const resultArea = { innerHTML: '' };
   const api = load({
-    files: ['kanji_data.js'],
+    files: ['kanji-normalize.js', 'kanji_data.js'],
     functions: ['getKanjiGrade', 'analyzeKanji', 'escapeHTML'],
-    exports: ['kanjiData'],
+    exports: ['kanjiData', 'secondaryJoyoKanji', 'joyoKanjiTableForms', 'KANJI_GRADE_MAP'],
     globals: {
       renderResults: (gradeResults, counts) => Object.assign(out, { gradeResults, counts }),
       document: { getElementById: () => resultArea },
@@ -46,18 +46,43 @@ test('同じ漢字が複数の学年に入っていない', () => {
   assert.equal(new Set(all).size, all.length);
 });
 
-test('getKanjiGrade は学年、配当外は other を返す', () => {
+test('配当表にない常用漢字は 1,110 字で、配当表と合わせて常用漢字 2,136 字になる', () => {
+  const { kanjiData, secondaryJoyoKanji, KANJI_GRADE_MAP } = analyzer();
+  const secondary = Array.from(secondaryJoyoKanji);
+  assert.equal(secondary.length, 1110);
+  assert.equal(new Set(secondary).size, 1110);
+  const edu = new Set(Object.values(kanjiData).flatMap((s) => Array.from(s)));
+  assert.equal(secondary.filter((c) => edu.has(c)).length, 0, '配当表の字が混ざっている');
+  // 2,136 字 + 常用漢字表の字体 4 字（塡・剝・頰・𠮟）
+  assert.equal(KANJI_GRADE_MAP.size, 2136 + 4);
+});
+
+test('getKanjiGrade は学年、配当表にない常用漢字は joyo、表外字は other を返す', () => {
   const { getKanjiGrade } = analyzer();
   assert.equal(getKanjiGrade('一'), 1);
   assert.equal(getKanjiGrade('引'), 2);
   assert.equal(getKanjiGrade('論'), 6);
+  assert.equal(getKanjiGrade('曖'), 'joyo');
+  assert.equal(getKanjiGrade('剥'), 'joyo');
+  assert.equal(getKanjiGrade('剝'), 'joyo');
   assert.equal(getKanjiGrade('薔'), 'other');
+});
+
+test('PDF 由来の部首用文字コードは通常の漢字として学年を判定する', () => {
+  const { run } = analyzer();
+  // U+2ED1 ⻑→長（小2）、U+2EA0 ⺠→民（小4）、U+2F00 ⼀→一（小1）、U+2ED8 ⻘→青（小1）
+  const { gradeResults } = run('\u2ED1\u2EA0\u2F00\u2ED8');
+  assert.deepEqual(Object.keys(gradeResults[1]).sort(), ['一', '青'].sort());
+  assert.deepEqual(Object.keys(gradeResults[2]), ['長']);
+  assert.deepEqual(Object.keys(gradeResults[4]), ['民']);
+  assert.equal(Object.keys(gradeResults.other).length, 0);
 });
 
 test('文章中の漢字を学年ごとに分類し、出現回数をすべて数える', () => {
   const { run } = analyzer();
-  const { gradeResults, counts } = run('一二一、薔薇');
+  const { gradeResults, counts } = run('一二一、曖昧な薔薇');
   assert.deepEqual(Object.keys(gradeResults[1]).sort(), ['一', '二'].sort());
+  assert.deepEqual(Object.keys(gradeResults.joyo).sort(), ['昧', '曖'].sort());
   assert.deepEqual(Object.keys(gradeResults.other).sort(), ['薇', '薔'].sort());
   assert.equal(counts['一'], 2);
 });
