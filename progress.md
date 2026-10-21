@@ -1,5 +1,10 @@
 # 進捗: 教育漢字さん（edu-kanji-checker）
 
+## 2026-10-21 セッション（エージェント向け規則の一本化）
+
+- `CLAUDE.md` と `AGENTS.md` に規則が別々に書かれ、内容がずれていた（Claude Code は `CLAUDE.md` があると `AGENTS.md` を自動では読まず、Codex は `CLAUDE.md` を読まない）。両方の規則を `AGENTS.md` に統合し、`CLAUDE.md` は `@AGENTS.md` の取り込みだけにした。
+- org 共通の取り決めと検査は edi-tool/.github#1（`PRINCIPLES.md`・`templates/CLAUDE.template.md`・`tools/check-template-sync.mjs`）。
+
 ## 2026-10-13 セッション（判定精度の見直し）
 
 - **部首用文字コードの自動置き換え**: PDF 由来の CJK 部首補助（⻑ U+2ED1 など）を配当外と誤判定していた。Unicode の EquivalentUnifiedIdeograph.txt（18.0.0）の 114 対応で通常の漢字へ置き換えてから判定する（`kanji-normalize.js`。常用漢字さんと同じ内容。片方を直したらもう片方へもコピーする）。
