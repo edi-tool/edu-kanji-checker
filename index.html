@@ -9,7 +9,8 @@ lang: ja
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f8f6f2">
+    <meta name="theme-color" content="#f8f6f2" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1c1b19" media="(prefers-color-scheme: dark)">
 
     <title>{{ page.title }} | 教育漢字さん</title>
     <meta name="description" content="{{ page.description }}">
@@ -42,20 +43,46 @@ lang: ja
     <script defer src="kanji-normalize.js"></script>
     <script defer src="kanji_data.js"></script>
     <style>
-        /* ===== 共通デザイントークン（事務ツール5種で統一） ===== */
+        /* ===== 共通デザイントークン（edi-tool 全ツール共通。正本: edi-tool/.github の DESIGN.md） ===== */
         :root {
             --bg: #f8f6f2;
             --surface: #fff;
+            --surface-2: #f1eee8;
             --border: #e0e0e0;
+            --control-border: #8c877e; /* 入力欄・ボタンの輪郭（白地 3.57:1） */
             --text: #0f0f0f;
-            --text-sub: #6b6b6b;
+            --text-sub: #5f5b54; /* 背景上 6.25:1 */
             --accent: #f28c06;
             --accent-dark: #d97a00;
             --accent-soft: #fff8f0;
-            --accent-text: #b35f00; /* 文字用のアクセント（白地で AA を満たす濃さ） */
-            --danger: #e53935;
+            --accent-line: #ffd9a8;
+            --accent-text: #b35f00; /* 白地の太字・大きい文字だけ（白地 4.61:1） */
+            --accent-ink: #9a5200; /* 小さい文字のアクセント（背景上 5.43:1・淡色上 5.57:1） */
+            --on-accent: #1a1100; /* アクセント地の文字（7.59:1） */
+            --focus: #9a5200;
+            --danger: #c62828;
+            --ok: #2e7d32;
+            color-scheme: light dark;
         }
-        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1c1b19;
+                --surface: #26241f;
+                --surface-2: #2f2c26;
+                --border: #46423a;
+                --control-border: #8a8476;
+                --text: #f3f1ec;
+                --text-sub: #b9b4a8;
+                --accent-soft: #33281a;
+                --accent-line: #6b4a1f;
+                --accent-text: #ffb24d;
+                --accent-ink: #ffb24d;
+                --focus: #ffb24d;
+                --danger: #ff8a80;
+                --ok: #81c784;
+            }
+        }
+        :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
         }
@@ -88,7 +115,7 @@ lang: ja
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 32px 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: none;
             width: 100%;
             max-width: 800px;
             text-align: center;
@@ -103,13 +130,13 @@ lang: ja
         .brand-link {
             display: inline-block;
             margin-bottom: 4px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--text-sub);
             text-decoration: none;
             letter-spacing: 0.02em;
         }
-        .brand-link:hover { color: var(--accent-text); text-decoration: underline; }
+        .brand-link:hover { color: var(--accent-ink); text-decoration: underline; }
         h1 {
             margin-top: 0;
             margin-bottom: 8px;
@@ -136,9 +163,9 @@ lang: ja
         /* ファイル選択: クリック・ドラッグ＆ドロップ・キーボードに対応したドロップゾーン */
         .drop-zone {
             display: block;
-            border: 2px dashed #d4d4d4;
+            border: 2px dashed var(--control-border);
             border-radius: 12px;
-            background-color: #fafafa;
+            background-color: var(--surface-2);
             padding: 24px 16px;
             margin-bottom: 8px;
             cursor: pointer;
@@ -146,7 +173,7 @@ lang: ja
         }
         /* input 本体は隠し、キーボードでフォーカスしたときはゾーンに枠を出す（Enter/Space で選択画面が開く） */
         #fileInput:focus-visible + .drop-zone {
-            outline: 2px solid var(--accent);
+            outline: 3px solid var(--focus);
             outline-offset: 2px;
         }
         .drop-zone:hover, .drop-zone.is-dragover {
@@ -167,7 +194,7 @@ lang: ja
         }
         .drop-note {
             display: block;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-sub);
             margin-top: 4px;
         }
@@ -208,7 +235,7 @@ lang: ja
         .paste-box > summary {
             font-size: 13px;
             font-weight: 600;
-            color: var(--accent-text);
+            color: var(--accent-ink);
             cursor: pointer;
             padding: 6px 0;
         }
@@ -229,7 +256,7 @@ lang: ja
         .paste-btn {
             border: 1px solid var(--accent);
             background-color: var(--surface);
-            color: var(--accent-text);
+            color: var(--accent-ink);
             border-radius: 8px;
             padding: 8px 16px;
             min-height: 40px;
@@ -240,7 +267,7 @@ lang: ja
         }
         .paste-btn:hover { background-color: var(--accent-soft); }
         .result-ok {
-            color: #2e7d32;
+            color: var(--ok);
             font-weight: 600;
         }
 
@@ -267,12 +294,12 @@ lang: ja
             font-variant-numeric: tabular-nums;
         }
         .distribution-total strong {
-            color: var(--accent-text);
+            color: var(--accent-ink);
             font-size: 18px;
         }
         .distribution-total span {
             font-weight: 400;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-sub);
             margin-left: 4px;
         }
@@ -291,7 +318,7 @@ lang: ja
             margin: 12px 0 0;
             padding: 0;
             list-style: none;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-sub);
             font-variant-numeric: tabular-nums;
         }
@@ -327,7 +354,7 @@ lang: ja
             font-weight: 600;
             margin-bottom: 16px;
             padding-bottom: 8px;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -351,7 +378,7 @@ lang: ja
             border-radius: 8px;
             padding: 6px 12px;
             min-height: 36px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             font-family: inherit;
             cursor: pointer;
@@ -373,14 +400,14 @@ lang: ja
             border: 1px solid var(--border);
             border-radius: 8px;
             background-color: var(--surface);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            box-shadow: none;
         }
         .kanji-header {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-bottom: 12px;
-            border-bottom: 1px dashed #e0e0e0;
+            border-bottom: 1px dashed var(--border);
             padding-bottom: 8px;
         }
         .kanji-char {
@@ -396,10 +423,10 @@ lang: ja
             height: 22px;
             padding: 0 8px;
             border-radius: 999px;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 600;
             border: 1px solid var(--border);
-            background: #f5f5f5;
+            background: var(--surface-2);
             color: var(--text-sub);
             font-variant-numeric: tabular-nums;
         }
@@ -423,13 +450,13 @@ lang: ja
         }
         .context-item {
             font-size: 13px;
-            color: #555;
+            color: var(--text-sub);
             margin-bottom: 8px;
             line-height: 1.5;
-            background: #fff;
+            background: var(--surface);
             padding: 6px 8px;
             border-radius: 4px;
-            border: 1px solid #eee;
+            border: 1px solid var(--border);
         }
         .highlight {
             font-weight: bold;
@@ -474,13 +501,13 @@ lang: ja
         /* Footer */
         footer {
             margin-top: 32px;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-sub);
             text-align: center;
             word-break: normal;
         }
         footer a { color: inherit; }
-        footer a:hover { color: var(--accent-text); }
+        footer a:hover { color: var(--accent-ink); }
         
         /* タブ用のスタイル */
         .tabs {
@@ -488,13 +515,14 @@ lang: ja
             flex-wrap: wrap;
             gap: 6px;
             margin-bottom: 24px;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid var(--border);
         }
         .tab-btn {
             padding: 10px 18px;
-            border: 1px solid #e0e0e0;
-            background-color: #fafafa;
-            color: #757575;
+            border: 1px solid var(--border);
+            background-color: var(--surface-2);
+            color: var(--text-sub);
+            min-height: 44px;
             cursor: pointer;
             font-size: 15px;
             font-weight: 600;
@@ -505,8 +533,8 @@ lang: ja
             font-family: inherit;
         }
         .tab-btn:hover {
-            color: #0f0f0f;
-            background-color: #f0f0f0;
+            color: var(--text);
+            background-color: var(--surface);
         }
         
         /* 学年ごとのアクティブタブの色設定 */
@@ -524,7 +552,7 @@ lang: ja
             .tab-btn { padding: 8px 10px; font-size: 14px; }
         }
         .tab-count {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: normal;
             font-variant-numeric: tabular-nums;
         }
@@ -539,6 +567,30 @@ lang: ja
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        /* ===== 共通デザイン（DESIGN.md）: 個別の outline: none より後ろでフォーカス枠を必ず出す ===== */
+        :is(a, button, input, select, textarea, summary, label, [tabindex]):focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 2px;
+        }
+        /* ツール固有: 学年色のダーク版（文字色は暗い面で 4.5:1 以上になる淡い色に替える） */
+        @media (prefers-color-scheme: dark) {
+            .grade-1 { --g-text: #ff8a80; }
+            .grade-2 { --g-text: #90caf9; }
+            .grade-3 { --g-text: #a5d6a7; }
+            .grade-4 { --g-text: #ffb74d; }
+            .grade-5 { --g-text: #ce93d8; }
+            .grade-6 { --g-text: #80deea; }
+            .grade-joyo { --g-text: #b0bec5; }
+            .grade-other { --g-text: #bcaaa4; }
+            .tab-btn.tab-1.active { background-color: color-mix(in srgb, #e53935 22%, var(--surface)); color: #ff8a80; border-color: color-mix(in srgb, #e53935 45%, var(--surface)); }
+            .tab-btn.tab-2.active { background-color: color-mix(in srgb, #1e88e5 22%, var(--surface)); color: #90caf9; border-color: color-mix(in srgb, #1e88e5 45%, var(--surface)); }
+            .tab-btn.tab-3.active { background-color: color-mix(in srgb, #43a047 22%, var(--surface)); color: #a5d6a7; border-color: color-mix(in srgb, #43a047 45%, var(--surface)); }
+            .tab-btn.tab-4.active { background-color: color-mix(in srgb, #fb8c00 22%, var(--surface)); color: #ffb74d; border-color: color-mix(in srgb, #fb8c00 45%, var(--surface)); }
+            .tab-btn.tab-5.active { background-color: color-mix(in srgb, #8e24aa 24%, var(--surface)); color: #ce93d8; border-color: color-mix(in srgb, #8e24aa 50%, var(--surface)); }
+            .tab-btn.tab-6.active { background-color: color-mix(in srgb, #00acc1 22%, var(--surface)); color: #80deea; border-color: color-mix(in srgb, #00acc1 45%, var(--surface)); }
+            .tab-btn.tab-joyo.active { background-color: color-mix(in srgb, #78909c 24%, var(--surface)); color: #b0bec5; border-color: color-mix(in srgb, #78909c 50%, var(--surface)); }
+            .tab-btn.tab-other.active { background-color: color-mix(in srgb, #8d6e63 24%, var(--surface)); color: #bcaaa4; border-color: color-mix(in srgb, #8d6e63 50%, var(--surface)); }
         }
     </style>
     <script type="application/ld+json">
